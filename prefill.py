@@ -71,4 +71,4 @@ def run():
         item = list(data)[i]
         data[item].append(urls[i])
         generate_qr(urls[i], data[item][0])
-    print(data)
+    return data
