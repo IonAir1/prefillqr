@@ -4,3 +4,4 @@ config.py
 *.ipynb
 exports
 *.pyc
+config.ini
