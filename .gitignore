@@ -4,3 +4,6 @@
 exports
 *.pyc
 config.ini
+build
+dist
+prefillqr.egg-info
