@@ -1,89 +1,136 @@
-import config
 import prefill
+from configparser import ConfigParser
+
+
+config = ConfigParser()
+run = True
+
+
+config.read('config.ini')
+if not config.has_section('main'):
+    config.add_section('main')
+    
+if config.has_option('main','excel_file'):
+    excel_file = config.get('main', 'excel_file')
+else:
+    excel_file = ""
+        
+if config.has_option('main','forms_link'):
+    forms_link = config.get('main', 'forms_link')
+else:
+    forms_link = ""
+    
+if config.has_option('main','destination'):
+    destination = config.get('main', 'destination')
+else:
+    destination = "exports/"
+
+if config.has_option('main','bitly_token'):
+    bitly_token = config.get('main', 'bitly_token').split(",")
+else:
+    bitly_token = []
+    
+
+def save(key, value):
+    if key == "bitly_token":
+        val = ",".join(value)
+    else:
+        val = value
+    if not config.has_section('main'):
+        config.add_section('main')
+    config.read('config.ini')
+    config.set('main', str(key), val)
+    with open('config.ini', 'w') as f:
+        config.write(f)
 
 
 print("enter \"help\" for more help")
-run = True
 
 
 while run == True:
     ans = input("Prefilled G Forms QR Code Generator: ").split()
     
-    if ans[0] == "exit":
-        if len(ans) < 2:
-            run = False
-        else:
-            print("Too many arguments, enter \"help\" for help")
-    
+    if ans[0] == "exit" or ans[0] == "quit":
+        run = False
+
     elif ans[0] == "about":
-        if len(ans) < 2:
-            print("\nPrefilled G Forms QR Code Generator is a program that generates a prefill link of a google form based on a specified excel file. It is then shortened through bitly and turned into a qr code\n")
-        else:
-            print("Too many arguments, enter \"help\" for help")
-        
+        print("\nPrefilled G Forms QR Code Generator is a program that generates a prefill link of a google form based on a specified excel file. It is then shortened through bitly and turned into a qr code\n")
     
     elif ans[0] == "run":
-        if len(ans) < 2:
-            prefill.run()
-        else:
-            print("Too many arguments, enter \"help\" for help")
+        prefill.run(excel_file, forms_link, bitly_token, destination)
         
     elif ans[0] == "token":
         if len(ans) < 2:
-            print("Not enough arguments, enter \"help\" for help")
+            print(str(bitly_token).translate({ord(c): None for c in '][,'}))
         else:
-            
-            if ans[1] == "list":
-                if len(ans) < 3:
-                    print(str(config.bitly_token).translate({ord(c): None for c in '][,'}))
-                else:
-                    print("Too many arguments, enter \"help\" for help")
-            
-            elif ans[1] == "add":
+            if ans[1] == "add":
                 if len(ans) > 2:
                     for i in range(len(ans) - 2):
-                        config.bitly_token.append(ans[i + 2])
+                        if not ans[i+2] in bitly_token:
+                            bitly_token.append(ans[i + 2])
+                            save('bitly_token',bitly_token)
                 else:
-                    print("Not enough arguments, enter \"help\" for help")
+                    print("Invalid arguments, enter \"help\" for help")
                 
             elif ans[1] == "remove":
                 if len(ans) > 2:
                     for i in range(len(ans) - 2):
-                        config.bitly_token.remove(ans[i + 2])
+                        if ans[i+2] in bitly_token:
+                            bitly_token.remove(ans[i + 2])
+                            save('bitly_token',bitly_token)
                 else:
-                    print("Not enough arguments, enter \"help\" for help")
+                    print("Invalid arguments, enter \"help\" for help")
                 
             elif ans[1] == "clear":
-                if len(ans) < 3:
-                    config.bitly_token = []
-                else:
-                    print("Too many arguments, enter \"help\" for help")
-    
+                    bitly_token = []
+                    save('bitly_token',bitly_token)
+
+    elif ans[0] == "excel":
+        if len(ans) == 1:
+            print(excel_file)
+        elif len(ans) == 2:
+            excel_file = ans[1]
+            save('excel_file', excel_file)
+        else:
+            print("Invalid arguments, enter \"help\" for help")
+            
+            
     elif ans[0] == "destination":
         if len(ans) == 1:
-            print(config.destination)
-        elif len(ans) == 3:
-            if ans[1] == "change":
-                config.destination = ans[2]
+            print(destination)
+        elif len(ans) == 2:
+            destination = ans[1]
+            save('destination', destination)
         else:
-            print("Too many or not enough arguments, enter \"help\" for help")
+            print("Invalid arguments, enter \"help\" for help")
                 
 
     
     elif ans[0] == "form":
         if len(ans) == 1:
-            print(config.forms_link)
-        elif len(ans) == 3:
-            if ans[1] == "change":
-                config.forms_link = ans[2]
+            print(forms_link)
+        elif len(ans) == 2:
+            forms_link = ans[1]
+            save('forms_link', forms_link)
         else:
-            print("Too many or not enough arguments, enter \"help\" for help")
+            print("Invalid arguments, enter \"help\" for help")
     
     elif ans[0] == "help":
-        if len(ans) < 2:
-            print("\nexit                        exits the program\nabout                       displays program info\nrun                         generates the qr code\ntoken list                  lists all the tokens\ntoken add <token>           adds the specified bitly token/s (you may add multiple tokens at a time)\ntoken remove <token>        removes the specified bitly token/s (you may remove multiple tokens at a time)\ntoken clear                 clears the tokens\ndestination                 displays the current destination folder\ndestination change <path>   changes the destination folder to the specified path\nform                        displays the current google form prefill link\nform change                 changes the google form prefill link to the specified url\n")
-        else:
-            print("Too many arguments, enter \"help\" for help")
+        print("""
+        'exit'  or  'quit'     exits the program
+        'about'                displays program info
+        'run'                  generates the qr code
+        'token'                lists all the tokens
+        'token add <token>'    adds the specified bitly token/s (you may add multiple tokens at a time)
+        'token remove <token>' removes the specified bitly token/s (you may remove multiple tokens at a time)
+        'token clear'          clears the tokens
+        'destination'          displays the current destination folder
+        'destination <path>'   changes the destination folder to the specified path
+        'form'                 displays the current google form prefill link
+        'form <path>'          changes the google form prefill link to the specified url
+        'excel'                displays the current selected excel file
+        'excel <path>'         changes the excel file to the specified path
+        """)
         
     else:
         print("unknown command")

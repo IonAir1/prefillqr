@@ -1,5 +1,4 @@
 *.xlsx
-config.py
 .ipynb_checkpoints
 *.ipynb
 exports
